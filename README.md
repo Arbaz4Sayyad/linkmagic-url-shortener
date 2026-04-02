@@ -13,7 +13,7 @@ LinkMagic is a **production-ready, full-stack URL shortening platform** engineer
 
 <div align="center">
   <h3>🎬 Product Tour</h3>
-  <video src="screenshots/URL-Shortener-Demo-Vid.mp4" width="800" controls autoplay muted loop title="LinkMagic Demo Video"></video>
+  <video src="screenshots/URL-Shortener-Demo-Vid.mp4" width="100%" controls autoplay muted loop></video>
   <br/>
   <img src="screenshots/home_page.png" width="400" alt="Home Page"/>
   <img src="screenshots/performance_insights.png" width="400" alt="Performance Insights"/>
