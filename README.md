@@ -9,6 +9,18 @@ LinkMagic is a **production-ready, full-stack URL shortening platform** engineer
 
 ---
 
+## 🎨 Visuals & Experience
+
+<div align="center">
+  <img src="screenshots/home_page.png" width="400" alt="Home Page"/>
+  <img src="screenshots/performance_insights.png" width="400" alt="Performance Insights"/>
+  <br/>
+  <img src="screenshots/analytics_dashboard.png" width="400" alt="Analytics Dashboard"/>
+  <img src="screenshots/workflow.png" width="400" alt="Workflow"/>
+</div>
+
+---
+
 ## 🏗️ System Architecture
 
 LinkMagic leverages a multi-tier architecture designed for ultra-low latency redirection and high availability.
