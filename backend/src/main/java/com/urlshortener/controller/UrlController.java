@@ -8,6 +8,7 @@ import com.urlshortener.entity.Url;
 import com.urlshortener.entity.User;
 import com.urlshortener.service.UrlService;
 import com.urlshortener.security.UserDetailsImpl;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -31,6 +32,7 @@ import java.util.List;
 public class UrlController {
 
     private final UrlService urlService;
+    private final com.urlshortener.service.AnalyticsService analyticsService;
 
     @PostMapping("/shorten")
     public ResponseEntity<UrlResponse> createShortUrl(@Valid @RequestBody UrlRequest urlRequest) {
@@ -59,7 +61,7 @@ public class UrlController {
                 urlRequest.getCustomSlug()
             );
             
-            String baseUrl = "http://localhost:8080/api/v1/";
+            String baseUrl = "http://localhost:8080/api/v1";
             UrlResponse response = UrlResponse.fromEntity(baseUrl, url);
             
             log.info("Successfully created short URL: {} -> {}", url.getShortCode(), url.getOriginalUrl());
@@ -103,13 +105,14 @@ public class UrlController {
     }
 
     @GetMapping("/{shortCode}")
-    public void redirectToOriginalUrl(@PathVariable String shortCode, HttpServletResponse response) throws IOException {
+    public void redirectToOriginalUrl(@PathVariable String shortCode, HttpServletRequest request, HttpServletResponse response) throws IOException {
         log.info("Redirection request for short code: {}", shortCode);
         
         urlService.getOriginalUrl(shortCode).ifPresentOrElse(
             url -> {
                 try {
-                    urlService.incrementClickCount(shortCode);
+                    // Log rich analytics
+                    analyticsService.recordClick(shortCode, request);
                     response.sendRedirect(url.getOriginalUrl());
                 } catch (IOException e) {
                     log.error("Redirect failed", e);
@@ -128,7 +131,7 @@ public class UrlController {
     @GetMapping("/info/{shortCode}")
     public ResponseEntity<UrlResponse> getUrlInfo(@PathVariable String shortCode) {
         return urlService.getUrlByShortCode(shortCode)
-                .map(url -> ResponseEntity.ok(UrlResponse.fromEntity("http://localhost:8080/api/v1/", url)))
+                .map(url -> ResponseEntity.ok(UrlResponse.fromEntity("http://localhost:8080/api/v1", url)))
                 .orElse(ResponseEntity.notFound().build());
     }
 
@@ -154,7 +157,7 @@ public class UrlController {
 
         UserDetailsImpl userDetails = (UserDetailsImpl) auth.getPrincipal();
         List<Url> urls = urlService.getUrlsByUser(userDetails.getId());
-        String baseUrl = "http://localhost:8080/api/v1/";
+        String baseUrl = "http://localhost:8080/api/v1";
         
         List<UrlResponse> response = urls.stream()
                 .map(url -> UrlResponse.fromEntity(baseUrl, url))

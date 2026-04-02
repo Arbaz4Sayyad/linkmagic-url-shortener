@@ -32,7 +32,7 @@ const HomePage = () => {
     }
 
     const requests = urls.map(url => ({ originalUrl: url }));
-    
+
     setIsProcessing(true);
     try {
       const response = await urlService.bulkShortenUrls(requests);
@@ -58,7 +58,7 @@ const HomePage = () => {
 
   const containerVariants = {
     hidden: { opacity: 0 },
-    visible: { 
+    visible: {
       opacity: 1,
       transition: { staggerChildren: 0.1, delayChildren: 0.3 }
     }
@@ -91,18 +91,52 @@ const HomePage = () => {
               <Sparkles className="w-3.5 h-3.5 mr-2" />
               Revolutionizing Link Management
             </motion.div>
-            
+
             <motion.h1 variants={itemVariants} className="text-5xl md:text-8xl font-black heading-premium tracking-tighter text-white max-w-4xl mx-auto leading-none">
               Shorten Your Links <br />
               <span className="text-gradient">With Precision.</span>
             </motion.h1>
-            
+
             <motion.p variants={itemVariants} className="text-xl text-slate-400 max-w-2xl mx-auto leading-relaxed">
               The modern link infrastructure for high-growth teams. <br className="hidden md:block" /> Secure, lightning-fast, and packed with deep analytics.
             </motion.p>
           </motion.div>
 
-          <motion.div 
+          {/* Insights Banner for Unauthenticated Users */}
+          {!user && (
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.8 }}
+              className="mb-8 w-full max-w-2xl mx-auto"
+            >
+              <Link
+                to="/login"
+                className="group relative flex items-center justify-between p-4 rounded-2xl bg-indigo-500/5 backdrop-blur-xl border border-indigo-500/20 hover:border-indigo-500/40 hover:bg-indigo-500/10 transition-all duration-300 shadow-2xl overflow-hidden"
+              >
+                <div className="absolute inset-0 bg-gradient-to-r from-indigo-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                <div className="flex items-center space-x-4 relative z-10">
+                  <div className="w-10 h-10 rounded-xl bg-indigo-500/20 flex items-center justify-center text-indigo-400 group-hover:scale-110 transition-transform">
+                    <BarChart3 className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-bold text-white group-hover:text-indigo-400 transition-colors">
+                      Unlock click analytics, geo tracking & device insights
+                    </p>
+                    <p className="text-[10px] font-medium text-slate-500 uppercase tracking-widest">
+                      Login for 80% more insights
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-center text-indigo-400 font-black text-xs uppercase tracking-widest relative z-10">
+                  <span className="hidden sm:inline">Get Started</span>
+                  <ArrowRight className="ml-2 w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                </div>
+              </Link>
+            </motion.div>
+          )}
+
+          <motion.div
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.6, delay: 0.6, type: "spring", bounce: 0.3 }}
@@ -112,24 +146,22 @@ const HomePage = () => {
             <div className="glass-card p-1 shadow-2xl relative">
               {/* Inner Glow */}
               <div className="absolute inset-0 bg-indigo-500/5 rounded-[1.5rem] pointer-events-none" />
-              
+
               <div className="bg-slate-900/50 backdrop-blur-2xl rounded-[1.4rem] p-4 md:p-8">
                 {/* Form Wrapper */}
                 <div className="mb-8 flex justify-center">
                   <div className="p-1 bg-slate-950/50 rounded-2xl border border-white/5 flex items-center space-x-1 shadow-inner">
                     <button
                       onClick={() => setActiveTab('single')}
-                      className={`px-6 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${
-                        activeTab === 'single' ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/20' : 'text-slate-400 hover:text-slate-200'
-                      }`}
+                      className={`px-6 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${activeTab === 'single' ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/20' : 'text-slate-400 hover:text-slate-200'
+                        }`}
                     >
                       Single URL
                     </button>
                     <button
                       onClick={() => setActiveTab('bulk')}
-                      className={`px-6 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${
-                        activeTab === 'bulk' ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/20' : 'text-slate-400 hover:text-slate-200'
-                      }`}
+                      className={`px-6 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${activeTab === 'bulk' ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/20' : 'text-slate-400 hover:text-slate-200'
+                        }`}
                     >
                       Bulk Shorten
                     </button>
@@ -171,10 +203,10 @@ const HomePage = () => {
                               <label className="cursor-pointer group flex items-center space-x-2 text-[10px] font-black text-slate-500 hover:text-indigo-400 transition-colors uppercase tracking-widest">
                                 <Inbox className="w-3.5 h-3.5" />
                                 <span>Upload CSV</span>
-                                <input 
-                                  type="file" 
+                                <input
+                                  type="file"
                                   accept=".csv,.txt"
-                                  className="hidden" 
+                                  className="hidden"
                                   onChange={(e) => {
                                     const file = e.target.files[0];
                                     if (file) {
@@ -236,9 +268,9 @@ const HomePage = () => {
                 </AnimatePresence>
               </div>
             </div>
-            
+
             {/* Social Trust / Mini Features under Hero */}
-            <motion.div 
+            <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 1, duration: 1 }}
@@ -266,7 +298,7 @@ const HomePage = () => {
           <HowItWorks />
           <Pricing />
         </div>
-        
+
         {/* FINAL CTA SECTION */}
         <section className="py-32 relative overflow-hidden">
           <div className="absolute inset-0 bg-indigo-600/5 [mask-image:radial-gradient(ellipse_at_center,transparent_20%,black)]" />
@@ -278,7 +310,7 @@ const HomePage = () => {
               Join the data-driven pioneers choosing LinkMagic for their link management infrastructure. No limits, just performance.
             </p>
             <div className="pt-4 flex flex-col sm:flex-row items-center justify-center gap-4">
-              <Link 
+              <Link
                 to={user ? "/analytics" : "/register"}
                 className="btn-premium px-10 py-4 text-sm uppercase tracking-widest flex items-center"
               >

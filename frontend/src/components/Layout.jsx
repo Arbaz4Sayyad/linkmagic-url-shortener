@@ -8,6 +8,8 @@ import BackToTop from './BackToTop';
 const Layout = ({ children }) => {
   const location = useLocation();
   const isAuthPage = ['/login', '/register', '/forgot-password'].some(path => location.pathname === path);
+  const isAnalyticsPage = location.pathname.startsWith('/analytics');
+  const hideFooter = isAuthPage || isAnalyticsPage;
 
   return (
     <div className="flex flex-col min-h-screen selection:bg-indigo-500/30">
@@ -24,8 +26,8 @@ const Layout = ({ children }) => {
           {children}
         </div>
       </main>
-      {!isAuthPage && <Footer />}
-      {!isAuthPage && <BackToTop />}
+      {!hideFooter && <Footer />}
+      {!hideFooter && <BackToTop />}
     </div>
   );
 };

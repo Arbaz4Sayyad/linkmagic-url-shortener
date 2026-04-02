@@ -28,11 +28,12 @@ graph TD
 ## 🚀 Key Capabilities
 
 - ⚡ **Ultra-Fast Redirection**: Sub-millisecond resolution via Redis-backed cache.
-- 📊 **Real-time Analytics**: Enterprise-grade tracking for clicks, geography, and device signatures.
+- 🧠 **AI-Powered Insights**: Smart, human-readable performance summaries (e.g., *"Engagement increased by 30% this week"*).
+- 📊 **Precision Analytics**: Real-time tracking for clicks, IP geolocation (Country/City), browser, OS, and referral sources.
 - 🔐 **Hardened Security**: JWT-based session management with Google/GitHub SSO.
-- 🔗 **Scalable Shortening**: Support for high-volume bulk processing and CSV ingestion.
-- 📱 **Adaptive UI**: A premium "Midnight" design system with fluid glassmorphism.
-- 🔑 **Developer-First**: Comprehensive API key lifecycle management for headless integrations.
+- 🔗 **Bulk Shortening**: Enterprise-grade CSV ingestion for massive link deployments.
+- 📱 **Adaptive "Midnight" UI**: A premium, glassmorphism-driven design system inspired by Vercel/Linear.
+- 🔑 **Developer-First**: Full API key lifecycle management for headless integrations.
 
 ---
 
@@ -42,13 +43,14 @@ graph TD
 - **Framework**: Spring Boot 3.2.5 (Java 17)
 - **Database**: MySQL 8.0 (Relational) + Redis (Edge Caching)
 - **Security**: Spring Security + JWT + OAuth2 (SSO)
+- **Analytics**: `yauaa` (User-Agent Parsing) + `ip-api` (Geolocation)
 - **Migration**: Flyway-managed schema evolution
 
 ### Frontend Experience
 - **Framework**: React 19 + Vite (Modern ESM)
 - **Styling**: Tailwind CSS + Framer Motion (Fluid Animations)
 - **Visualization**: Recharts (Dynamic Analytics Dashboards)
-- **Icons**: Custom Bulletproof SVG system (Lucide-React based)
+- **Icons**: Lucide-React + Modern Lucide SVG system
 
 ---
 
@@ -57,22 +59,37 @@ graph TD
 ### Shorten a URL
 `POST /api/v1/shorten`
 
-**Request:**
 ```bash
 curl -X POST http://localhost:8080/api/v1/shorten \
-  -H "Content-Type: application/json" \
-  -d '{
-    "originalUrl": "https://example.com/very-long-path",
-    "customAlias": "custom-link"
-  }'
+  -H "Header: Authorization: Bearer <TOKEN>" \
+  -d '{"originalUrl": "https://google.com"}'
 ```
+
+### Get Smart Analytics
+`GET /api/v1/analytics/{shortCode}`
 
 **Response:**
 ```json
 {
-  "shortUrl": "http://lnk.mg/custom-link",
-  "originalUrl": "https://example.com/very-long-path",
-  "createdAt": "2024-04-02T12:00:00Z"
+  "totalClicks": 1240,
+  "peakHour": "14:00",
+  "topCountry": "United States",
+  "deviceDistribution": [{"name": "Desktop", "value": 850}, ...],
+  "trendData": [{"date": "2024-04-02", "clicks": 120}, ...]
+}
+```
+
+### Get AI Insights
+`GET /api/v1/analytics/{shortCode}/insights`
+
+**Response:**
+```json
+{
+  "insights": [
+    "Your link performs best at 2 PM local time. ⏰",
+    "Users are primarily visiting via desktop devices. 📱",
+    "Engagement increased by 15.4% this week! 🚀"
+  ]
 }
 ```
 
@@ -83,14 +100,14 @@ curl -X POST http://localhost:8080/api/v1/shorten \
 ### Infrastructure (Docker)
 Ensure Docker is running and execute:
 ```bash
-docker-compose up -d
+docker-compose up -d --build
 ```
 
 ### Manual Service Start
 | Service | Directory | Command |
 | :--- | :--- | :--- |
 | **Backend** | `./backend` | `mvn spring-boot:run` |
-| **Frontend** | `./frontend` | `npm install && npm run dev` |
+| **Frontend** | `./frontend` | `npm run dev` |
 
 ---
 
@@ -99,18 +116,12 @@ We maintain a high quality bar through comprehensive test coverage:
 * **Backend**: Junit 5 + Mockito (Service layer), Testcontainers (Integration).
 * **Frontend**: Vitest + React Testing Library (Component & Logic).
 
-```bash
-# Run all tests
-cd backend && mvn test
-cd frontend && npm test
-```
-
 ---
 
 ## 🛡️ Security Implementation
 - **Rate Limiting**: Redis-based throttling to prevent brute-force attacks.
 - **Input Sanitization**: Extreme validation on original URLs to prevent XSS/SSRF.
-- **Stateless Auth**: JWT signatures with secure cookie storage.
+- **Stateless Auth**: JWT signatures with secure session handling.
 
 ---
 

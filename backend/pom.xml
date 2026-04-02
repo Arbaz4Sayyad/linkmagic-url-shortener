@@ -145,6 +145,13 @@
             <artifactId>mysql</artifactId>
             <scope>test</scope>
         </dependency>
+        
+        <!-- User Agent Parsing -->
+        <dependency>
+            <groupId>nl.basjes.parse.useragent</groupId>
+            <artifactId>yauaa</artifactId>
+            <version>7.28.1</version>
+        </dependency>
     </dependencies>
     
     <dependencyManagement>

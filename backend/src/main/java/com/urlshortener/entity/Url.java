@@ -49,4 +49,7 @@ public class Url extends BaseEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
     private User user;
+
+    @OneToMany(mappedBy = "url", cascade = CascadeType.ALL, orphanRemoval = true)
+    private java.util.List<Click> clicks = new java.util.ArrayList<>();
 }

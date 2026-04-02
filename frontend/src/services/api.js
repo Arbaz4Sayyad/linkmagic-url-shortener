@@ -48,8 +48,8 @@ export const authService = {
 };
 
 export const urlService = {
-  createShortUrl: async (originalUrl, expiryDate = null, customSlug = null) => {
-    const response = await api.post('/shorten', { originalUrl, expiryDate, customSlug });
+  createShortUrl: async (originalUrl, expiryDate = null, customAlias = null) => {
+    const response = await api.post('/shorten', { originalUrl, expiryDate, customAlias });
     return response.data;
   },
 
@@ -65,6 +65,16 @@ export const urlService = {
 
   getUrlStats: async (shortCode) => {
     const response = await api.get(`/info/${shortCode}`);
+    return response.data;
+  },
+
+  getAnalytics: async (shortCode) => {
+    const response = await api.get(`/analytics/${shortCode}`);
+    return response.data;
+  },
+
+  getInsights: async (shortCode) => {
+    const response = await api.get(`/analytics/${shortCode}/insights`);
     return response.data;
   },
 };

@@ -117,7 +117,7 @@ const Footer = () => {
         </div>
         
         {/* Bottom Bar */}
-        <div className="pt-12 border-t border-white/5 flex flex-col md:flex-row justify-between items-center gap-8">
+        <div className="pt-12 border-t border-white/5 flex flex-col lg:flex-row justify-between items-center gap-12">
           <div className="flex flex-col md:flex-row items-center gap-8 text-center md:text-left">
             <p className="text-[10px] font-black text-slate-600 uppercase tracking-[0.2em]">
               &copy; {new Date().getFullYear()} LINKMAGIC. ALL RIGHTS RESERVED.
@@ -129,14 +129,28 @@ const Footer = () => {
             </div>
           </div>
           
-          <div className="flex items-center space-x-3 px-5 py-2.5 bg-indigo-500/5 rounded-full border border-indigo-500/10 backdrop-blur-sm">
-            <div className="relative">
-              <div className="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.5)]" />
-              <div className="absolute inset-0 w-2 h-2 rounded-full bg-emerald-500 animate-ping opacity-30" />
+          <div className="flex flex-wrap justify-center lg:justify-end items-center gap-4">
+            {/* Compliance Badges */}
+            <div className="flex items-center space-x-3 px-4 py-1.5 rounded-full bg-slate-900 border border-white/5 text-slate-500 text-[9px] font-black uppercase tracking-widest">
+              <span className="flex items-center"><span className="w-1.5 h-1.5 rounded-full bg-indigo-500/40 mr-1.5" />GDPR COMPLIANT</span>
             </div>
-            <span className="text-[10px] font-black text-emerald-500 uppercase tracking-[0.2em]">
-              Operational Excellence Verified
-            </span>
+            <div className="flex items-center space-x-3 px-4 py-1.5 rounded-full bg-slate-900 border border-white/5 text-slate-500 text-[9px] font-black uppercase tracking-widest">
+              <span className="flex items-center"><span className="w-1.5 h-1.5 rounded-full bg-indigo-500/40 mr-1.5" />CCPA COMPLIANT</span>
+            </div>
+            <div className="flex items-center space-x-3 px-4 py-1.5 rounded-full bg-slate-900 border border-white/5 text-slate-500 text-[9px] font-black uppercase tracking-widest">
+              <span className="flex items-center"><span className="w-1.5 h-1.5 rounded-full bg-indigo-500/40 mr-1.5" />SOC 2 TYPE 2</span>
+            </div>
+
+            {/* Operational Status */}
+            <div className="flex items-center space-x-3 px-5 py-2.5 bg-emerald-500/5 rounded-full border border-emerald-500/20 backdrop-blur-sm">
+              <div className="relative">
+                <div className="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.5)]" />
+                <div className="absolute inset-0 w-2 h-2 rounded-full bg-emerald-500 animate-ping opacity-30" />
+              </div>
+              <span className="text-[10px] font-black text-emerald-500 uppercase tracking-[0.2em]">
+                Operational Excellence Verified
+              </span>
+            </div>
           </div>
         </div>
       </div>
