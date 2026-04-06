@@ -54,7 +54,57 @@ graph TD
 - 🔑 **Developer-First**: Full API key lifecycle management for headless integrations.
 
 ---
+## 🔄 Request Flow
+**🔹URL Shortening (Write Path)**
+1. User submits long URL
+2. Backend generates unique short code (Base62)
+3. Stores mapping in MySQL
+4. Writes entry to Redis (write-through cache)
+5. Returns short URL
+---
+## 🧠 System Design Decisions
+### 1. Read-Heavy Optimization
+- URL redirection systems are read-dominant
+- Redis acts as the primary read layer
+  
+👉 Result: Reduced DB load + ultra-fast responses
 
+### 2. Caching Strategy (Write-Through)
+- Cache updated during write operations
+- TTL used for automatic expiration
+
+👉 Trade-off:
+
+- Slightly higher write latency
+- Significantly faster reads
+
+### 3. Service Decomposition
+- Redirect logic separated from analytics processing
+
+👉 Why:
+
+- Prevent analytics from increasing redirect latency
+- Improve fault isolation
+
+### 4. Async Processing
+- Analytics handled asynchronously
+
+👉 Benefits:
+
+- Non-blocking API
+- Better scalability under load
+
+### 5. ID Generation Strategy
+- Base62 encoding used for short URL generation
+
+👉 Future:
+- Can adopt distributed ID generation (Snowflake)
+
+### 6. Database Optimization
+- Indexed shortCode column
+- Optimized queries for high concurrency
+
+---
 ## 🛠️ Tech Stack
 
 ### Backend Engine
@@ -70,6 +120,23 @@ graph TD
 - **Visualization**: Recharts (Dynamic Analytics Dashboards)
 - **Icons**: Lucide-React + Modern Lucide SVG system
 
+---
+## 📊 Scalability Considerations
+- Stateless services → horizontal scaling
+- Redis reduces database bottleneck
+- Load balancer distributes traffic
+  
+## 🚀 Future Improvements
+- Rate limiting (Redis-based)
+- Kafka for async event streaming
+- CDN for global redirection
+- Multi-region deployment
+
+## 🛡️ Reliability & Fault Handling
+- Retry mechanisms for transient failures
+- TTL-based cache eviction
+- Idempotent API design for safe retries
+- Input validation to prevent malformed URLs
 ---
 
 ## 📖 API Documentation
@@ -112,6 +179,11 @@ curl -X POST http://localhost:8080/api/v1/shorten \
 ```
 
 ---
+## 🧪 Testing Strategy
+- **Unit Testing**: JUnit, Mockito
+- **Integration Testing**: Testcontainers
+- **Frontend Testing**: Vitest
+---
 
 ## ⚙️ Development Setup
 
@@ -144,9 +216,20 @@ We maintain a high quality bar through comprehensive test coverage:
 ---
 
 ## 🤝 Contributing
-Engineered for extensibility. See [CONTRIBUTING.md](CONTRIBUTING.md) for architectural guidelines and PR standards.
+Contributions are welcome!
+Follow standard Git workflow and open a PR.
 
 ---
 
 ## 📜 License
-Distributed under the **MIT License**. Created by [Arbaz Sayyad](https://github.com/Arbaz4Sayyad).
+- Distributed under the **MIT License**.
+---
+
+## 👨‍💻 Author
+
+**Arbaz Sayyad**
+Backend Engineer | Java | Spring Boot | Distributed Systems
+
+- 📫 [arbaz4sayyad@gmail.com]
+
+- 🔗 [https://www.linkedin.com/in/arbaz-sayyad/]
