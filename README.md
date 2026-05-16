@@ -33,7 +33,7 @@ Inspired by systems like **Bitly**, it is engineered to handle **read-heavy traf
 
 - Client requests are routed through API layer
 - Redis serves as a fast cache for redirection
-- MySQL ensures persistent storage
+- MongoDB ensures high-performance storage for URLs and Clicks
 - Async analytics handled separately to avoid latency impact
 
 ---
@@ -44,7 +44,7 @@ Inspired by systems like **Bitly**, it is engineered to handle **read-heavy traf
 
 1. User submits long URL
 2. Backend generates unique short code (Base62)
-3. Mapping stored in MySQL
+3. Mapping stored in MongoDB
 4. Entry written to Redis (write-through cache)
 5. Short URL returned
 
@@ -61,10 +61,11 @@ Inspired by systems like **Bitly**, it is engineered to handle **read-heavy traf
 
 * ⚡ **Sub-10ms redirection latency** using Redis caching
 * 🔑 **Base62 encoding** for compact URL generation
-* 📊 **Asynchronous analytics pipeline**
-* 🔁 **Idempotent APIs for safe retries**
+* 📊 **Real-time Analytics Dashboard** (Peak hours, Geo, Device Mix)
+* 🧠 **AI-Powered Insights** for link performance
 * 🧱 **Stateless services for horizontal scaling**
 * 🔐 **Secure authentication (JWT + OAuth2)**
+* ⏳ **Guest Limit**: 2 URLs per guest for anti-spam
 
 ---
 
@@ -153,7 +154,7 @@ Inspired by systems like **Bitly**, it is engineered to handle **read-heavy traf
 ### Backend
 
 * Java 17, Spring Boot 3
-* MySQL 8.0
+* MongoDB 6.0+
 * Redis
 
 ### Frontend
@@ -203,8 +204,10 @@ GET /api/v1/analytics/{shortCode}
 ```json
 {
   "totalClicks": 1240,
-  "peakHour": "14:00",
-  "topCountry": "United States"
+  "peakHour": 14,
+  "topCountry": "United States",
+  "countryDistribution": [{"name": "United States", "value": 800}, ...],
+  "deviceDistribution": [{"name": "Mobile", "value": 900}, ...]
 }
 ```
 

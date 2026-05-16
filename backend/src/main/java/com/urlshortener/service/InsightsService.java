@@ -13,19 +13,27 @@ import java.util.List;
 public class InsightsService {
 
     private final ClickRepository clickRepository;
+    private final com.urlshortener.repository.UrlRepository urlRepository;
 
     public List<String> getInsights(String shortCode) {
+        com.urlshortener.entity.Url url = urlRepository.findByShortCode(shortCode)
+                .orElseGet(() -> urlRepository.findByCustomSlug(shortCode).orElse(null));
+
+        if (url == null) {
+            return List.of("Start sharing your link to unlock AI-powered insights! 🧙‍♂️");
+        }
+
         List<String> insights = new ArrayList<>();
         
         LocalDateTime now = LocalDateTime.now();
         LocalDateTime oneWeekAgo = now.minusDays(7);
         LocalDateTime twoWeeksAgo = now.minusDays(14);
 
-        long currentWeekClicks = clickRepository.countByUrlShortCodeAndCreatedAtAfter(shortCode, oneWeekAgo);
-        long lastWeekClicks = clickRepository.countByUrlShortCodeAndCreatedAtAfter(shortCode, twoWeeksAgo) - currentWeekClicks;
+        long currentWeekClicks = clickRepository.countByUrlAndCreatedAtAfter(url, oneWeekAgo);
+        long lastWeekClicks = clickRepository.countByUrlAndCreatedAtAfter(url, twoWeeksAgo) - currentWeekClicks;
 
         // Peak Hour Insight
-        List<Object[]> peakHours = clickRepository.findPeakHours(shortCode);
+        List<Object[]> peakHours = clickRepository.findPeakHours(url);
         if (!peakHours.isEmpty()) {
             int hour = (int) peakHours.get(0)[0];
             String amPm = hour >= 12 ? "PM" : "AM";
@@ -34,14 +42,14 @@ public class InsightsService {
         }
 
         // Top Country Insight
-        List<Object[]> countries = clickRepository.findTopCountries(shortCode);
+        List<Object[]> countries = clickRepository.findTopCountries(url);
         if (!countries.isEmpty()) {
             String country = (String) countries.get(0)[0];
             insights.add(String.format("Most of your audience is accessing from %s. 🌍", country));
         }
 
         // Device Distribution Insight
-        List<Object[]> devices = clickRepository.findDeviceDistribution(shortCode);
+        List<Object[]> devices = clickRepository.findDeviceDistribution(url);
         if (!devices.isEmpty()) {
             String topDevice = (String) devices.get(0)[0];
             insights.add(String.format("Users are primarily visiting via %s devices. 📱", topDevice.toLowerCase()));

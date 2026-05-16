@@ -152,7 +152,7 @@ const UrlShortenerForm = () => {
                     />
                     {customSlug && (
                       <p className="mt-2 text-[10px] font-medium text-slate-500 truncate">
-                        Preview: <span className="text-indigo-400">linkmg.com/{customSlug}</span>
+                        Preview: <span className="text-indigo-400">linkmagic.co/{customSlug}</span>
                       </p>
                     )}
                   </div>

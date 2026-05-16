@@ -47,7 +47,7 @@ public class AuthDto {
     @AllArgsConstructor
     public static class JwtResponse {
         private String token;
-        private Long id;
+        private String id;
         private String username;
         private String email;
         private List<String> roles;
@@ -57,7 +57,7 @@ public class AuthDto {
     @AllArgsConstructor
     @Builder
     public static class UserResponse {
-        private Long id;
+        private String id;
         private String username;
         private String email;
         private List<String> roles;

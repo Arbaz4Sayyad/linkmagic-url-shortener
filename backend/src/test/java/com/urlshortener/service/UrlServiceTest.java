@@ -159,7 +159,7 @@ public class UrlServiceTest {
 
     private Url createTestUrl() {
         return Url.builder()
-                .id(1L)
+                .id("test-id")
                 .originalUrl(testUrl)
                 .shortCode(testShortCode)
                 .expiryDate(testExpiryDate)

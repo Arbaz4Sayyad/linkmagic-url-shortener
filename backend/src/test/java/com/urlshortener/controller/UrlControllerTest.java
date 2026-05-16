@@ -39,6 +39,9 @@ class UrlControllerTest {
     private UrlService urlService;
 
     @MockBean
+    private com.urlshortener.service.AnalyticsService analyticsService;
+
+    @MockBean
     private CacheService cacheService; // Required by RateLimitFilter
 
     @MockBean
@@ -64,7 +67,7 @@ class UrlControllerTest {
     @BeforeEach
     void setUp() {
         testUrl = Url.builder()
-                .id(1L)
+                .id("test-id")
                 .shortCode("abc12")
                 .originalUrl("https://google.com")
                 .isActive(true)

@@ -15,7 +15,7 @@ class UrlTest {
 
         // When
         Url url = Url.builder()
-                .id(1L)
+                .id("test-id-1")
                 .originalUrl("https://example.com")
                 .shortCode("abc123")
                 .createdAt(now)
@@ -25,7 +25,7 @@ class UrlTest {
                 .build();
 
         // Then
-        assertThat(url.getId()).isEqualTo(1L);
+        assertThat(url.getId()).isEqualTo("test-id-1");
         assertThat(url.getOriginalUrl()).isEqualTo("https://example.com");
         assertThat(url.getShortCode()).isEqualTo("abc123");
         assertThat(url.getCreatedAt()).isEqualTo(now);
@@ -40,14 +40,14 @@ class UrlTest {
         Url url = new Url();
 
         // When
-        url.setId(2L);
+        url.setId("test-id-2");
         url.setOriginalUrl("https://test.com");
         url.setShortCode("test123");
         url.setClickCount(10L);
         url.setIsActive(false);
 
         // Then
-        assertThat(url.getId()).isEqualTo(2L);
+        assertThat(url.getId()).isEqualTo("test-id-2");
         assertThat(url.getOriginalUrl()).isEqualTo("https://test.com");
         assertThat(url.getShortCode()).isEqualTo("test123");
         assertThat(url.getClickCount()).isEqualTo(10L);
@@ -58,7 +58,7 @@ class UrlTest {
     void shouldHandleNullableFields() {
         // Given
         Url url = Url.builder()
-                .id(1L)
+                .id("test-id-1")
                 .originalUrl("https://example.com")
                 .shortCode("abc123")
                 .expiryDate(null)

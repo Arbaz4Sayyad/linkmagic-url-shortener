@@ -10,7 +10,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 public class ApiKeyResponse {
-    private Long id;
+    private String id;
     private String name;
     private LocalDateTime createdAt;
     private LocalDateTime expiresAt;

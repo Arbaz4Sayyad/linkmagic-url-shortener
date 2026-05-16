@@ -31,12 +31,19 @@ public class UrlService {
     private final UrlValidator urlValidator;
     private static final int MAX_RETRIES = 10;
 
-    public Url createShortUrl(String originalUrl, LocalDateTime expiryDate, User user) {
-        return createShortUrl(originalUrl, expiryDate, user, null);
+    public Url createShortUrl(String originalUrl, LocalDateTime expiryDate, User user, String clientIp) {
+        return createShortUrl(originalUrl, expiryDate, user, null, clientIp);
     }
 
-    public Url createShortUrl(String originalUrl, LocalDateTime expiryDate, User user, String customSlug) {
-        log.info("Creating short URL for: {} (Custom Slug: {})", originalUrl, customSlug);
+    public Url createShortUrl(String originalUrl, LocalDateTime expiryDate, User user, String customSlug, String clientIp) {
+        log.info("Creating short URL for: {} (Custom Slug: {}, IP: {})", originalUrl, customSlug, clientIp);
+        
+        if (user == null && clientIp != null) {
+            long count = cacheService.getAnonymousGenerationCount(clientIp);
+            if (count >= 2) {
+                throw new UrlShortenerException("You've reached the guest limit! ✨ Sign up for a free account to unlock unlimited magic links and deep analytics.");
+            }
+        }
         
         // Validate URL format
         urlValidator.validateUrl(originalUrl);
@@ -88,6 +95,11 @@ public class UrlService {
         
         // Cache the new URL
         cacheService.cacheUrl(savedUrl.getShortCode(), savedUrl.getOriginalUrl());
+
+        // Increment anonymous count
+        if (user == null && clientIp != null) {
+            cacheService.incrementAnonymousGenerationCount(clientIp);
+        }
         
         log.info("Successfully created short URL: {} -> {}", shortCode, originalUrl);
         return savedUrl;
@@ -102,7 +114,7 @@ public class UrlService {
                 result.setOriginalUrl(request.getOriginalUrl());
                 
                 try {
-                    Url url = createShortUrl(request.getOriginalUrl(), request.getExpiryDate(), user, request.getCustomSlug());
+                    Url url = createShortUrl(request.getOriginalUrl(), request.getExpiryDate(), user, request.getCustomSlug(), null);
                     result.setShortUrl(baseUrl != null ? baseUrl + "/" + url.getShortCode() : url.getShortCode());
                     result.setStatus("SUCCESS");
                 } catch (Exception e) {
@@ -188,7 +200,7 @@ public class UrlService {
         return url;
     }
 
-    public List<Url> getUrlsByUser(Long userId) {
+    public List<Url> getUrlsByUser(String userId) {
         return urlRepository.findByUserIdOrderByCreatedAtDesc(userId);
     }
 
@@ -214,7 +226,7 @@ public class UrlService {
         log.info("Starting cleanup of expired URLs");
         List<Url> expiredUrls = urlRepository.findByIsActiveTrueAndExpiryDateBefore(LocalDateTime.now());
         if (!expiredUrls.isEmpty()) {
-            List<Long> expiredIds = expiredUrls.stream().map(Url::getId).toList();
+            List<String> expiredIds = expiredUrls.stream().map(Url::getId).toList();
             expiredUrls.forEach(url -> cacheService.invalidateUrlCache(url.getShortCode()));
             urlRepository.deactivateUrlsByIds(expiredIds, false);
             log.info("Deactivated {} expired URLs", expiredIds.size());

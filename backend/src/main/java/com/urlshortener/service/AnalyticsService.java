@@ -84,15 +84,30 @@ public class AnalyticsService {
     public Map<String, Object> getAnalytics(String shortCode) {
         Map<String, Object> analytics = new HashMap<>();
         
-        List<Object[]> peakHours = clickRepository.findPeakHours(shortCode);
-        List<Object[]> countries = clickRepository.findTopCountries(shortCode);
-        List<Object[]> devices = clickRepository.findDeviceDistribution(shortCode);
-        List<Object[]> referrers = clickRepository.findReferrerSources(shortCode);
-        List<Object[]> trend = clickRepository.findClickTrend(shortCode, LocalDateTime.now().minusDays(7));
+        Url url = urlRepository.findByShortCode(shortCode)
+                .or(() -> urlRepository.findByCustomSlug(shortCode))
+                .orElse(null);
+                
+        if (url == null) {
+            analytics.put("totalClicks", 0L);
+            analytics.put("peakHour", null);
+            analytics.put("topCountry", "N/A");
+            analytics.put("deviceDistribution", new ArrayList<>());
+            analytics.put("referrers", new ArrayList<>());
+            analytics.put("trendData", new ArrayList<>());
+            return analytics;
+        }
 
-        analytics.put("totalClicks", urlRepository.findByShortCode(shortCode).map(Url::getClickCount).orElse(0L));
+        List<Object[]> peakHours = clickRepository.findPeakHours(url);
+        List<Object[]> countries = clickRepository.findTopCountries(url);
+        List<Object[]> devices = clickRepository.findDeviceDistribution(url);
+        List<Object[]> referrers = clickRepository.findReferrerSources(url);
+        List<Object[]> trend = clickRepository.findClickTrend(url, LocalDateTime.now().minusDays(7));
+
+        analytics.put("totalClicks", url.getClickCount());
         analytics.put("peakHour", peakHours.isEmpty() ? null : peakHours.get(0)[0]);
         analytics.put("topCountry", countries.isEmpty() ? "N/A" : countries.get(0)[0]);
+        analytics.put("countryDistribution", formatDistribution(countries));
         analytics.put("deviceDistribution", formatDistribution(devices));
         analytics.put("referrers", formatDistribution(referrers));
         analytics.put("trendData", formatTrend(trend));

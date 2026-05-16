@@ -35,12 +35,14 @@ public class UrlController {
     private final com.urlshortener.service.AnalyticsService analyticsService;
 
     @PostMapping("/shorten")
-    public ResponseEntity<UrlResponse> createShortUrl(@Valid @RequestBody UrlRequest urlRequest) {
+    public ResponseEntity<?> createShortUrl(@Valid @RequestBody UrlRequest urlRequest, HttpServletRequest request) {
         log.info("Received request to shorten URL: {}", urlRequest.getOriginalUrl());
         
         try {
             if (urlRequest.getExpiryDate() != null && urlRequest.getExpiryDate().isBefore(LocalDateTime.now())) {
-                return ResponseEntity.badRequest().build();
+                return ResponseEntity.badRequest().body(new java.util.HashMap<String, String>() {{
+                    put("message", "Expiry date cannot be in the past");
+                }});
             }
 
             // Get current user if authenticated
@@ -58,17 +60,23 @@ public class UrlController {
                 urlRequest.getOriginalUrl(), 
                 urlRequest.getExpiryDate(), 
                 currentUser,
-                urlRequest.getCustomSlug()
+                urlRequest.getCustomSlug(),
+                request.getRemoteAddr()
             );
             
-            String baseUrl = "http://localhost:8080/api/v1";
+            String baseUrl = "https://linkmagic.co";
             UrlResponse response = UrlResponse.fromEntity(baseUrl, url);
             
             log.info("Successfully created short URL: {} -> {}", url.getShortCode(), url.getOriginalUrl());
             return ResponseEntity.status(HttpStatus.CREATED).body(response);
             
+        } catch (com.urlshortener.exception.UrlShortenerException e) {
+            log.warn("Failed to create short URL: {}", e.getMessage());
+            return ResponseEntity.badRequest().body(new java.util.HashMap<String, String>() {{
+                put("message", e.getMessage());
+            }});
         } catch (Exception e) {
-            log.error("Failed to create short URL", e);
+            log.error("Unexpected error creating short URL", e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
@@ -131,7 +139,7 @@ public class UrlController {
     @GetMapping("/info/{shortCode}")
     public ResponseEntity<UrlResponse> getUrlInfo(@PathVariable String shortCode) {
         return urlService.getUrlByShortCode(shortCode)
-                .map(url -> ResponseEntity.ok(UrlResponse.fromEntity("http://localhost:8080/api/v1", url)))
+                .map(url -> ResponseEntity.ok(UrlResponse.fromEntity("https://linkmagic.co", url)))
                 .orElse(ResponseEntity.notFound().build());
     }
 
@@ -157,7 +165,7 @@ public class UrlController {
 
         UserDetailsImpl userDetails = (UserDetailsImpl) auth.getPrincipal();
         List<Url> urls = urlService.getUrlsByUser(userDetails.getId());
-        String baseUrl = "http://localhost:8080/api/v1";
+        String baseUrl = "https://linkmagic.co";
         
         List<UrlResponse> response = urls.stream()
                 .map(url -> UrlResponse.fromEntity(baseUrl, url))

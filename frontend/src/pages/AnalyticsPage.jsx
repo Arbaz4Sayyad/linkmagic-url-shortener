@@ -94,7 +94,7 @@ const AnalyticsPage = () => {
   );
 
   // --- DETAIL VIEW ---
-  if (urlShortCode && (loading || analytics)) {
+  if (urlShortCode && (loading || analytics || error)) {
     return (
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-24 space-y-12">
         {/* Navigation & Header */}
@@ -141,14 +141,27 @@ const AnalyticsPage = () => {
             <Skeleton className="h-96 md:col-span-3" />
             <Skeleton className="h-96" />
           </div>
-        ) : (
+        ) : error ? (
+          <div className="glass-card p-16 text-center space-y-6">
+            <div className="w-20 h-20 rounded-[2rem] bg-red-500/10 flex items-center justify-center text-red-400 mx-auto shadow-inner">
+              <AlertCircle className="w-10 h-10" />
+            </div>
+            <div className="space-y-2">
+              <h3 className="text-2xl font-black text-white">Analytics Unavailable</h3>
+              <p className="text-slate-400 font-medium max-w-sm mx-auto">{error}</p>
+            </div>
+            <button onClick={() => navigate('/analytics')} className="btn-premium px-8 py-3 text-xs font-black uppercase tracking-widest">
+              Back to Dashboard
+            </button>
+          </div>
+        ) : analytics ? (
           <div className="grid grid-cols-1 md:grid-cols-12 gap-8">
             
             {/* Top Metrics */}
             <div className="md:col-span-12 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
               {[
                 { label: 'Total Clicks', value: analytics.totalClicks, icon: MousePointer2, color: 'indigo' },
-                { label: 'Peak Traffic', value: analytics.peakHour ? `${analytics.peakHour}:00` : 'N/A', icon: Clock, color: 'purple' },
+                { label: 'Peak Traffic', value: (analytics.peakHour !== null && analytics.peakHour !== undefined) ? `${analytics.peakHour}:00` : 'N/A', icon: Clock, color: 'purple' },
                 { label: 'Top Region', value: analytics.topCountry, icon: Globe, color: 'emerald' },
                 { label: 'Top Device', value: analytics.deviceDistribution?.[0]?.name || 'N/A', icon: Smartphone, color: 'rose' }
               ].map((m, i) => (
@@ -290,26 +303,32 @@ const AnalyticsPage = () => {
                   <Globe2 className="w-5 h-5 text-emerald-400" />
                   <h3 className="text-xl font-black text-white">Global Reach</h3>
                </div>
-               <div className="space-y-6">
-                  {analytics.topCountry === 'N/A' ? (
+                <div className="space-y-6">
+                  {(!analytics.countryDistribution || analytics.countryDistribution.length === 0 || analytics.topCountry === 'N/A') ? (
                     <p className="text-slate-500 font-medium italic">No regional data yet.</p>
                   ) : (
                     <div className="space-y-4">
                        <ResponsiveContainer width="100%" height={200}>
-                          <BarChart data={analytics.deviceDistribution?.length ? [{name: analytics.topCountry, value: analytics.totalClicks}] : []}>
+                          <BarChart data={analytics.countryDistribution}>
                             <XAxis dataKey="name" stroke="#475569" fontSize={10} hide />
-                            <Tooltip contentStyle={{ backgroundColor: '#0f172a', border: '1px solid #ffffff10' }} />
-                            <Bar dataKey="value" fill="#10b981" radius={[0, 4, 4, 0]} barSize={20} />
+                            <Tooltip 
+                              contentStyle={{ backgroundColor: '#0f172a', border: '1px solid #ffffff10', borderRadius: '1rem' }}
+                              itemStyle={{ color: '#fff' }}
+                            />
+                            <Bar dataKey="value" fill="#10b981" radius={[4, 4, 0, 0]} barSize={30} />
                           </BarChart>
                        </ResponsiveContainer>
-                       {/* Simplified list check for actual top countries aggregation needed in service? I returning one top country string for now */}
-                       <div className="flex items-center justify-between p-4 rounded-2xl bg-white/5 border border-white/5">
-                          <span className="text-sm font-black text-white uppercase tracking-widest">{analytics.topCountry}</span>
-                          <span className="text-emerald-400 font-black">Primary Region</span>
+                       <div className="space-y-2">
+                          {analytics.countryDistribution.slice(0, 3).map((c, i) => (
+                            <div key={i} className="flex items-center justify-between p-3 rounded-xl bg-white/5 border border-white/5">
+                               <span className="text-xs font-black text-white uppercase tracking-widest">{c.name}</span>
+                               <span className="text-emerald-400 font-black text-xs">{c.value} clicks</span>
+                            </div>
+                          ))}
                        </div>
                     </div>
                   )}
-               </div>
+                </div>
             </div>
 
             <div className="md:col-span-6 glass-card p-8">
@@ -334,7 +353,7 @@ const AnalyticsPage = () => {
             </div>
 
           </div>
-        )}
+        ) : null}
       </div>
     );
   }

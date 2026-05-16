@@ -1,13 +1,12 @@
 package com.urlshortener.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import javax.sql.DataSource;
-import java.sql.Connection;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
@@ -17,7 +16,7 @@ import java.util.Map;
 public class HealthController {
 
     @Autowired
-    private DataSource dataSource;
+    private MongoTemplate mongoTemplate;
 
     @GetMapping
     public ResponseEntity<Map<String, Object>> health() {
@@ -28,8 +27,9 @@ public class HealthController {
         response.put("application", "URL Shortener Service");
         response.put("version", "1.0.0");
         
-        // Database connectivity check
-        try (Connection connection = dataSource.getConnection()) {
+        // MongoDB connectivity check
+        try {
+            mongoTemplate.getDb().runCommand(new org.bson.Document("ping", 1));
             response.put("database", "UP");
         } catch (Exception e) {
             response.put("database", "DOWN");

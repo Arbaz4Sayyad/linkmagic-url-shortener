@@ -22,16 +22,22 @@ const HomePage = () => {
     e.preventDefault();
     if (!bulkInput.trim()) return;
 
-    const urls = bulkInput.split('\n')
-      .map(u => u.trim())
-      .filter(u => u.length > 0);
+    const lines = bulkInput.split('\n')
+      .map(line => line.trim())
+      .filter(line => line.length > 0);
 
-    if (urls.length > 50) {
+    if (lines.length > 50) {
       toast.error("Maximum 50 URLs allowed at once.");
       return;
     }
 
-    const requests = urls.map(url => ({ originalUrl: url }));
+    const requests = lines.map(line => {
+      // Support "url,alias" or "url" format
+      const parts = line.split(',');
+      const url = parts[0].trim();
+      const alias = parts.length > 1 ? parts[1].trim() : null;
+      return { originalUrl: url, customSlug: alias };
+    });
 
     setIsProcessing(true);
     try {
@@ -188,7 +194,23 @@ const HomePage = () => {
                       transition={{ duration: 0.2 }}
                       className="space-y-6"
                     >
-                      {!bulkResults ? (
+                      {!user ? (
+                        <div className="flex flex-col items-center justify-center p-12 text-center space-y-6 bg-slate-950/30 border border-white/5 rounded-[2rem]">
+                          <div className="w-16 h-16 rounded-3xl bg-indigo-500/10 flex items-center justify-center text-indigo-400">
+                            <Shield className="w-8 h-8" />
+                          </div>
+                          <div className="space-y-2">
+                            <h3 className="text-xl font-black text-white uppercase tracking-tighter">Authentication Required</h3>
+                            <p className="text-slate-400 text-sm max-w-xs mx-auto">Bulk link processing is an enterprise feature. Please sign in to access these capabilities.</p>
+                          </div>
+                          <Link 
+                            to="/login"
+                            className="btn-premium px-8 py-3 text-xs font-black uppercase tracking-widest"
+                          >
+                            Sign In to Unlock
+                          </Link>
+                        </div>
+                      ) : !bulkResults ? (
                         <form onSubmit={handleBulkSubmit} className="space-y-6">
                           <div className="relative group">
                             <textarea
@@ -213,12 +235,11 @@ const HomePage = () => {
                                       const reader = new FileReader();
                                       reader.onload = (event) => {
                                         const text = event.target.result;
-                                        const parsedUrls = text.split(/[\n,]/)
-                                          .map(u => u.trim())
-                                          .filter(u => u.startsWith('http'))
-                                          .slice(0, 50)
-                                          .join('\n');
-                                        setBulkInput(parsedUrls);
+                                        const lines = text.split('\n')
+                                          .map(l => l.trim())
+                                          .filter(l => l.length > 0 && !l.toLowerCase().startsWith('url,')); // Skip header
+                                        
+                                        setBulkInput(lines.slice(0, 50).join('\n'));
                                         toast.success("CSV Loaded!");
                                       };
                                       reader.readAsText(file);

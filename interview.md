@@ -13,7 +13,7 @@ This document contains a curated list of 35 high-quality interview questions and
 **Answer:** The **random approach** prevents "ID guessing" or "scrapping," which is a security benefit (users can't guess `link.com/aaaaa1` from `link.com/aaaaa0`). However, as the database grows, the collision probability increases, leading to more retries and higher latency. A **sequential approach** using a global counter/Zookeeper is more efficient (zero collisions) but requires careful management to prevent predictable URLs and usually needs a "shuffling" or "hashing" layer (like Hashids) to mask the sequence.
 
 **Q3. How do you handle the "Custom Slug" feature? What happens if two users request the same slug simultaneously?**  
-**Answer:** I implement custom slugs by checking both the `short_code` and `custom_slug` columns in the `url` table. To handle concurrency, I rely on a **unique constraint** at the database level on these columns. Even if two threads pass the application-level "exists" check, the database will throw a `DataIntegrityViolationException` for the second one, which we catch and map to a 409 Conflict error.
+**Answer:** I implement custom slugs by checking both the `short_code` and `custom_slug` fields. To handle concurrency, I rely on a **unique index** at the MongoDB level on these fields. Even if two threads pass the application-level "exists" check, the database will throw a `DuplicateKeyException` for the second one, which we catch and map to a 409 Conflict error.
 
 **Q4. Your `ShortCodeGenerator` uses `SecureRandom`. Why not just `java.util.Random`?**  
 **Answer:** `java.util.Random` uses a LCG (Linear Congruential Generator) which is predictable if you know a few previous outputs. For a public-facing URL shortener, predictability allows attackers to pre-calculate and "squat" on future short codes. `SecureRandom` is cryptographically strong and much harder to predict, making our short-link generation more secure against systematic link-enumeration attacks.
@@ -22,8 +22,8 @@ This document contains a curated list of 35 high-quality interview questions and
 
 ### **Phase 2: Database Design & Optimization**
 
-**Q5. Tell me about your database schema. Why MySQL for this project instead of a NoSQL DB like MongoDB?**  
-**Answer:** URL shorteners are read-heavy but require strong consistency for link creation (uniqueness). MySQL with InnoDB provides **ACID compliance**, which is critical for ensuring no two users get the same short code. While NoSQL scales horizontally better, a URL shortener's core data model is highly relational (User -> URLs -> Analytics). MySQL's B+ Tree indexing is extremely efficient for the primary lookup: `SELECT original_url FROM urls WHERE short_code = ?`.
+**Q5. Tell me about your database schema. Why MongoDB for this project instead of a Relational DB like MySQL?**  
+**Answer:** URL shorteners are write-intensive (for clicks) and read-heavy (for redirects). I migrated to **MongoDB** because its **schema-less** nature is perfect for rich analytics where we might want to store varying metadata (device, geo, referrer) without complex migrations. MongoDB also provides **excellent write performance** and horizontal scaling through **Sharding**, which is critical for a global redirect service. We still maintain uniqueness via unique indexes on the `shortCode` field.
 
 **Q6. What indexes have you created on the `urls` table? Explain the reasoning.**  
 **Answer:** 
@@ -33,11 +33,11 @@ This document contains a curated list of 35 high-quality interview questions and
 4. `created_at`: To support sorting and potential cleanup of old links.
 I avoided indexing `original_url` because it's a `TEXT/VARCHAR(2048)` field, and indexing such long strings would drastically increase storage and slow down writes without much benefit for our use cases.
 
-**Q7. If the `urls` table grows to 100 million rows, how would you handle the performance degradation?**  
-**Answer:** I would implement **Database Sharding**. Since lookups are almost always by `short_code`, I can shard the data based on a hash of the short code. This distributes the load across multiple physical databases. Additionally, I would implement an aggressive **TTL-based cleanup** for expired links (which my current service already supports) to keep the "hot" data set manageable.
+**Q7. If the `urls` collection grows to 100 million documents, how would you handle the performance degradation?**  
+**Answer:** I would implement **Sharding** based on the `shortCode` field as the shard key. Since lookups are almost always by `shortCode`, this ensures that requests are routed to the specific shard containing the data, preventing "scatter-gather" queries. Additionally, I would leverage MongoDB's **TTL indexes** to automatically expire and remove old links, keeping the "hot" data set in memory (WiredTiger cache).
 
-**Q8. You have a `Click` entity for analytics. Writing to the DB on every click will kill performance. How would you optimize this?**  
-**Answer:** Currently, it's a direct write. In a high-traffic scenario, I would move to **Buffered Writes** or an **Async Messaging Queue (Kafka)**. Instead of hitting the DB on every redirect, I'd push the click event to Kafka. A consumer would then batch-process these events (e.g., every 5 seconds or 1000 messages) to update the `click_count` and insert `Click` records in bulk, significantly reducing IOPS on the database.
+**Q8. You have a `Click` entity for analytics. Writing to the DB on every click can be demanding. How do you optimize this?**  
+**Answer:** While MongoDB handles high write volumes better than SQL, I still use **Redis as a write-through cache** for the total click count (`INCR` operations). For detailed logs, I use **Aggregation Pipelines** on the `Click` collection to calculate trends. In extreme traffic, I would introduce a message queue (Kafka) to buffer click events and process them in bulk, reducing the number of individual IOPS on the primary database.
 
 ---
 
@@ -130,8 +130,8 @@ A separate "Analytics Consumer" would read from Kafka and update the DB in batch
 
 ### **Phase 9: Practical Reasoning & Trade-offs**
 
-**Q29. Why use Flyway for database migrations?**  
-**Answer:** It ensures that the database schema is version-controlled alongside the code. When a new developer joins or we deploy to production, Flyway automatically runs the SQL scripts to bring the DB to the latest state. This eliminates the "it works on my machine" schema issues.
+**Q29. How do you handle data consistency and schema evolution without Flyway?**  
+**Answer:** Since moving to MongoDB, I rely on **Application-level schema management**. For initial setup (indexes), I use `@Indexed` annotations and custom `MongoConfig` settings. For data evolution, I follow the **expand-and-contract** pattern where the code handles multiple versions of a document, or I use background migration scripts for critical changes. This provides more agility than rigid SQL migrations.
 
 **Q30. You used `CompletableFuture.join()` in your bulk shortening. Why is this potentially dangerous?**  
 **Answer:** `join()` is a blocking call. If the thread pool is exhausted or the tasks take too long, it can block the main request thread, leading to a bottleneck. A better way would be to return a `202 Accepted` with a `job_id`, process the bulk request in the background, and let the user poll for results.

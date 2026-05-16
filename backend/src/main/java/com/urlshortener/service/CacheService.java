@@ -104,6 +104,27 @@ public class CacheService {
         }
     }
     
+    public void incrementAnonymousGenerationCount(String ip) {
+        String key = "anon_limit:" + ip;
+        try {
+            redisTemplate.opsForValue().increment(key);
+            redisTemplate.expire(key, Duration.ofDays(1)); // Reset limit every 24h
+        } catch (Exception e) {
+            log.error("Failed to increment anonymous generation count", e);
+        }
+    }
+
+    public long getAnonymousGenerationCount(String ip) {
+        String key = "anon_limit:" + ip;
+        try {
+            Object val = redisTemplate.opsForValue().get(key);
+            return val == null ? 0 : Long.parseLong(val.toString());
+        } catch (Exception e) {
+            log.error("Failed to get anonymous generation count", e);
+            return 0;
+        }
+    }
+
     public boolean isCacheAvailable() {
         try {
             redisTemplate.opsForValue().set("health_check", "ok", Duration.ofSeconds(10));

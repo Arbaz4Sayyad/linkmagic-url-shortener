@@ -5,8 +5,8 @@ import com.urlshortener.entity.User;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
-import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
+import org.springframework.boot.test.autoconfigure.data.mongo.DataMongoTest;
+import org.springframework.data.mongodb.core.MongoTemplate;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -14,11 +14,11 @@ import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@DataJpaTest
+@DataMongoTest
 class UrlRepositoryTest {
 
     @Autowired
-    private TestEntityManager entityManager;
+    private MongoTemplate mongoTemplate;
 
     @Autowired
     private UrlRepository urlRepository;
@@ -28,12 +28,15 @@ class UrlRepositoryTest {
 
     @BeforeEach
     void setUp() {
+        mongoTemplate.dropCollection(Url.class);
+        mongoTemplate.dropCollection(User.class);
+
         testUser = User.builder()
                 .username("testuser")
                 .email("test@example.com")
                 .password("password")
                 .build();
-        entityManager.persist(testUser);
+        mongoTemplate.save(testUser);
 
         testUrl = Url.builder()
                 .shortCode("abc12")
@@ -42,8 +45,7 @@ class UrlRepositoryTest {
                 .clickCount(0L)
                 .user(testUser)
                 .build();
-        entityManager.persist(testUrl);
-        entityManager.flush();
+        mongoTemplate.save(testUrl);
     }
 
     @Test
@@ -56,8 +58,7 @@ class UrlRepositoryTest {
     @Test
     void findByCustomSlug_ShouldReturnUrl() {
         testUrl.setCustomSlug("custom-slug");
-        entityManager.persist(testUrl);
-        entityManager.flush();
+        mongoTemplate.save(testUrl);
 
         Optional<Url> found = urlRepository.findByCustomSlug("custom-slug");
         assertThat(found).isPresent();
@@ -82,13 +83,12 @@ class UrlRepositoryTest {
                 .shortCode("exp12")
                 .originalUrl("https://expired.com")
                 .isActive(true)
-                .expiryDate(LocalDateTime.now().plusDays(1))
+                .expiryDate(LocalDateTime.now().minusDays(1))
                 .clickCount(0L)
                 .build();
-        entityManager.persist(expiredUrl);
-        entityManager.flush();
+        mongoTemplate.save(expiredUrl);
 
-        List<Url> expired = urlRepository.findByIsActiveTrueAndExpiryDateBefore(LocalDateTime.now().plusDays(2));
+        List<Url> expired = urlRepository.findByIsActiveTrueAndExpiryDateBefore(LocalDateTime.now());
         assertThat(expired).hasSize(1);
         assertThat(expired.get(0).getShortCode()).isEqualTo("exp12");
     }
@@ -96,7 +96,6 @@ class UrlRepositoryTest {
     @Test
     void incrementClickCount_ShouldUpdateClicks() {
         urlRepository.incrementClickCount(testUrl.getId(), LocalDateTime.now());
-        entityManager.clear();
 
         Url updated = urlRepository.findById(testUrl.getId()).orElseThrow();
         assertThat(updated.getClickCount()).isEqualTo(1L);

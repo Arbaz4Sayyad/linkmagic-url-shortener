@@ -39,7 +39,7 @@ public class ApiKeyService {
     }
 
     @Transactional
-    public String generateApiKey(Long userId, String name) {
+    public String generateApiKey(String userId, String name) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
@@ -61,7 +61,7 @@ public class ApiKeyService {
     }
 
     @Transactional(readOnly = true)
-    public List<ApiKeyResponse> getUserApiKeys(Long userId) {
+    public List<ApiKeyResponse> getUserApiKeys(String userId) {
         return apiKeyRepository.findByUserId(userId).stream()
                 .map(key -> new ApiKeyResponse(
                         key.getId(),
@@ -75,7 +75,7 @@ public class ApiKeyService {
     }
 
     @Transactional
-    public void revokeApiKey(Long userId, Long keyId) {
+    public void revokeApiKey(String userId, String keyId) {
         ApiKey apiKey = apiKeyRepository.findById(keyId)
                 .orElseThrow(() -> new RuntimeException("API Key not found"));
 

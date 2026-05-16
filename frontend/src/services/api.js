@@ -1,7 +1,19 @@
 import axios from 'axios';
 
+const getBaseURL = () => {
+  if (import.meta.env.VITE_API_BASE_URL) {
+    return import.meta.env.VITE_API_BASE_URL;
+  }
+  // Fallback to current host but on port 8080 if we're on localhost:3000
+  if (typeof window !== 'undefined') {
+    const { hostname } = window.location;
+    return `http://${hostname}:8080/api/v1`;
+  }
+  return 'http://localhost:8080/api/v1';
+};
+
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080/api/v1',
+  baseURL: getBaseURL(),
   timeout: 10000,
   headers: {
     'Content-Type': 'application/json',
@@ -49,7 +61,7 @@ export const authService = {
 
 export const urlService = {
   createShortUrl: async (originalUrl, expiryDate = null, customAlias = null) => {
-    const response = await api.post('/shorten', { originalUrl, expiryDate, customAlias });
+    const response = await api.post('/shorten', { originalUrl, expiryDate, customSlug: customAlias });
     return response.data;
   },
 

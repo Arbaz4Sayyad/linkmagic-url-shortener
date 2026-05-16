@@ -45,7 +45,7 @@ public class ApiKeyController {
     }
 
     @DeleteMapping("/{keyId}")
-    public ResponseEntity<?> revokeApiKey(@PathVariable Long keyId) {
+    public ResponseEntity<?> revokeApiKey(@PathVariable String keyId) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         UserDetailsImpl userDetails = (UserDetailsImpl) auth.getPrincipal();
         
