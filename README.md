@@ -25,7 +25,7 @@ Inspired by systems like **Bitly**, it is engineered to handle **read-heavy traf
 ## 🏗️ High-Level Architecture
 
 <p align="center">
-  <img src="docs/architecture.png" width="800"/>
+  <img src="docs/architecture-v2.png" width="800"/>
 </p>
 
 ---
